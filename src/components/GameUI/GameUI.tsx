@@ -37,7 +37,8 @@ export function GameUI({ state, actions }: GameUIProps) {
           {activeTab === 'upgrades' && (
             <UpgradesTab 
               crops={state.crops} 
-              money={state.money} 
+              money={state.money}
+              onUnlock={actions.unlockCrop}
             />
           )}
           {activeTab === 'options' && (
@@ -56,16 +57,24 @@ export function GameUI({ state, actions }: GameUIProps) {
   );
 }
 
+function formatNumber(value: number): string {
+  if (value >= 1e12) return (value / 1e12).toFixed(2) + 'T';
+  if (value >= 1e9) return (value / 1e9).toFixed(2) + 'B';
+  if (value >= 1e6) return (value / 1e6).toFixed(2) + 'M';
+  if (value >= 1e3) return (value / 1e3).toFixed(2) + 'K';
+  return Math.floor(value).toLocaleString();
+}
+
 function Header({ money, income }: { money: number; income: number }) {
   return (
     <header className="game-header">
       <div className="header-stat">
         <span className="header-label">MONEY:</span>
-        <span className="header-value currency">${money.toLocaleString()}</span>
+        <span className="header-value currency">${formatNumber(money)}</span>
       </div>
       <div className="header-stat">
         <span className="header-label">INCOME:</span>
-        <span className="header-value income">+{income.toLocaleString()}</span>
+        <span className="header-value income">+${formatNumber(income)}/s</span>
       </div>
     </header>
   );
@@ -204,14 +213,29 @@ function CropsTab({ crops, onBuy, onUpgradeSoil, onUpgradeFertilizer, onUpgradeS
   );
 }
 
-function UpgradesTab({ crops, money }: { crops: Crop[]; money: number }) {
+function UpgradesTab({ crops, money, onUnlock }: { crops: Crop[]; money: number; onUnlock: (cropId: string) => void }) {
   const nextUnlock = crops.find(c => !c.unlocked && c.unlockCost);
+  const unlockedCrops = crops.filter(c => c.unlocked);
 
   const progress = nextUnlock ? Math.min((money / nextUnlock.unlockCost!) * 100, 100) : 100;
 
   return (
     <div className="upgrades-tab">
       <h2 className="heading-section">Unlocks</h2>
+      
+      {unlockedCrops.length > 0 && (
+        <div className="unlocked-section">
+          <h3 className="unlocked-title">Unlocked Crops</h3>
+          <div className="unlocked-list">
+            {unlockedCrops.map(crop => (
+              <div key={crop.id} className="unlocked-item">
+                <span className="unlocked-check">✓</span>
+                <span className="unlocked-name">{crop.name}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
       
       {nextUnlock ? (
         <div className="unlock-card">
@@ -233,12 +257,21 @@ function UpgradesTab({ crops, money }: { crops: Crop[]; money: number }) {
             </div>
           </div>
 
-          <div className="unlock-rewards">
-            <span className="rewards-label">Reward:</span>
-            <ul className="rewards-list">
-              <li>Unlock {nextUnlock.name}</li>
-            </ul>
-          </div>
+          {progress >= 100 ? (
+            <button
+              className="btn btn-primary unlock-btn"
+              onClick={() => onUnlock(nextUnlock.id)}
+            >
+              UNLOCK {nextUnlock.name.toUpperCase()}
+            </button>
+          ) : (
+            <div className="unlock-rewards">
+              <span className="rewards-label">Reward:</span>
+              <ul className="rewards-list">
+                <li>Unlock {nextUnlock.name}</li>
+              </ul>
+            </div>
+          )}
         </div>
       ) : (
         <div className="all-unlocked">

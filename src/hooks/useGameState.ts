@@ -48,9 +48,9 @@ export function useGameState() {
     const interval = setInterval(() => {
       setState(prev => ({
         ...prev,
-        money: prev.money + prev.incomePerSecond,
+        money: prev.money + (prev.incomePerSecond / 10),
       }));
-    }, 1000);
+    }, 100);
     return () => clearInterval(interval);
   }, [state.incomePerSecond]);
 
@@ -138,6 +138,22 @@ export function useGameState() {
     });
   }, []);
 
+  const unlockCrop = useCallback((cropId: string) => {
+    setState(prev => {
+      const crop = prev.crops.find(c => c.id === cropId);
+      if (!crop || crop.unlocked || !crop.unlockCost) return prev;
+      if (prev.money < crop.unlockCost) return prev;
+
+      return {
+        ...prev,
+        crops: prev.crops.map(c => 
+          c.id === cropId ? { ...c, unlocked: true } : c
+        ),
+        money: prev.money - crop.unlockCost,
+      };
+    });
+  }, []);
+
   const setTheme = useCallback((theme: string) => {
     document.documentElement.setAttribute('data-theme', theme);
     localStorage.setItem('idle-farm-theme', theme);
@@ -182,6 +198,7 @@ export function useGameState() {
     upgradeSoil,
     upgradeFertilizer,
     upgradeSeeds,
+    unlockCrop,
     setTheme,
     saveGame,
     loadGame,

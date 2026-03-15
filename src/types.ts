@@ -36,6 +36,7 @@ export interface GameActions {
   upgradeSoil: (cropId: string) => void;
   upgradeFertilizer: (cropId: string) => void;
   upgradeSeeds: (cropId: string) => void;
+  unlockCrop: (cropId: string) => void;
   setTheme: (theme: string) => void;
   saveGame: () => void;
   loadGame: () => void;
