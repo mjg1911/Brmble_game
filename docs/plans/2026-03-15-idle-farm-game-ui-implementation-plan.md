@@ -454,6 +454,8 @@ export interface Crop {
   owned: number;
   unlocked: boolean;
   unlockCost?: number;
+  soilLevel: number;       // 0-5, each level increases income by 50%
+  soilUpgradeCost: number; // Cost to upgrade soil
 }
 
 export interface Upgrade {
@@ -475,6 +477,7 @@ export interface GameState {
 
 export interface GameActions {
   buyCrop: (cropId: string) => void;
+  upgradeSoil: (cropId: string) => void;
   setTheme: (theme: string) => void;
   saveGame: () => void;
   loadGame: () => void;
@@ -484,11 +487,11 @@ export interface GameActions {
 }
 
 export const INITIAL_CROPS: Crop[] = [
-  { id: 'wheat', name: 'Wheat', baseCost: 1420, baseIncome: 51, owned: 0, unlocked: true },
-  { id: 'corn', name: 'Corn', baseCost: 4830, baseIncome: 96, owned: 0, unlocked: true },
-  { id: 'potatoes', name: 'Potatoes', baseCost: 11000, baseIncome: 180, owned: 0, unlocked: false, unlockCost: 5000 },
-  { id: 'carrots', name: 'Carrots', baseCost: 28000, baseIncome: 320, owned: 0, unlocked: false, unlockCost: 15000 },
-  { id: 'tomatoes', name: 'Tomatoes', baseCost: 65000, baseIncome: 550, owned: 0, unlocked: false, unlockCost: 40000 },
+  { id: 'wheat', name: 'Wheat', baseCost: 1420, baseIncome: 51, owned: 0, unlocked: true, soilLevel: 0, soilUpgradeCost: 500 },
+  { id: 'corn', name: 'Corn', baseCost: 4830, baseIncome: 96, owned: 0, unlocked: true, soilLevel: 0, soilUpgradeCost: 1200 },
+  { id: 'potatoes', name: 'Potatoes', baseCost: 11000, baseIncome: 180, owned: 0, unlocked: false, unlockCost: 5000, soilLevel: 0, soilUpgradeCost: 3000 },
+  { id: 'carrots', name: 'Carrots', baseCost: 28000, baseIncome: 320, owned: 0, unlocked: false, unlockCost: 15000, soilLevel: 0, soilUpgradeCost: 7500 },
+  { id: 'tomatoes', name: 'Tomatoes', baseCost: 65000, baseIncome: 550, owned: 0, unlocked: false, unlockCost: 40000, soilLevel: 0, soilUpgradeCost: 15000 },
 ];
 
 export const INITIAL_UPGRADES: Upgrade[] = [
@@ -532,7 +535,8 @@ const STORAGE_KEY = 'idle-farm-save';
 function calculateIncome(crops: Crop[]): number {
   return crops.reduce((total, crop) => {
     if (!crop.unlocked) return total;
-    return total + (crop.baseIncome * crop.owned);
+    const soilMultiplier = 1 + (crop.soilLevel * 0.5); // Each soil level = +50% income
+    return total + (crop.baseIncome * crop.owned * soilMultiplier);
   }, 0);
 }
 
@@ -629,6 +633,27 @@ export function useGameState() {
     });
   }, []);
 
+  const upgradeSoil = useCallback((cropId: string) => {
+    setState(prev => {
+      const crop = prev.crops.find(c => c.id === cropId);
+      if (!crop || !crop.unlocked || crop.soilLevel >= 5) return prev;
+      if (prev.money < crop.soilUpgradeCost) return prev;
+
+      return {
+        ...prev,
+        crops: prev.crops.map(c => {
+          if (c.id !== cropId) return c;
+          return {
+            ...c,
+            soilLevel: c.soilLevel + 1,
+            soilUpgradeCost: Math.floor(c.soilUpgradeCost * 1.5),
+          };
+        }),
+        money: prev.money - crop.soilUpgradeCost,
+      };
+    });
+  }, []);
+
   const setTheme = useCallback((theme: string) => {
     applyTheme(theme as ThemeName);
   }, []);
@@ -669,6 +694,7 @@ export function useGameState() {
 
   const actions: GameActions = {
     buyCrop,
+    upgradeSoil,
     setTheme,
     saveGame,
     loadGame,
@@ -737,7 +763,12 @@ export function GameUI({ state, actions }: GameUIProps) {
         <TabNav activeTab={activeTab} onTabChange={setActiveTab} />
         <div className="game-content">
           {activeTab === 'crops' && (
-            <CropsTab crops={state.crops} onBuy={actions.buyCrop} money={state.money} />
+            <CropsTab 
+              crops={state.crops} 
+              onBuy={actions.buyCrop} 
+              onUpgradeSoil={actions.upgradeSoil}
+              money={state.money} 
+            />
           )}
           {activeTab === 'upgrades' && (
             <UpgradesTab 
@@ -982,6 +1013,7 @@ import './CropsTab.css';
 interface CropsTabProps {
   crops: Crop[];
   onBuy: (cropId: string) => void;
+  onUpgradeSoil: (cropId: string) => void;
   money: number;
 }
 
@@ -989,7 +1021,12 @@ function calculateCost(crop: Crop): number {
   return Math.floor(crop.baseCost * Math.pow(1.15, crop.owned));
 }
 
-export function CropsTab({ crops, onBuy, money }: CropsTabProps) {
+function calculateIncome(crop: Crop): number {
+  const soilMultiplier = 1 + (crop.soilLevel * 0.5);
+  return Math.floor(crop.baseIncome * soilMultiplier);
+}
+
+export function CropsTab({ crops, onBuy, onUpgradeSoil, money }: CropsTabProps) {
   return (
     <div className="crops-tab">
       <h2 className="heading-section">Crops</h2>
@@ -1000,13 +1037,16 @@ export function CropsTab({ crops, onBuy, money }: CropsTabProps) {
             <th>COST</th>
             <th>OWNED</th>
             <th>GAIN/s</th>
-            <th>BUY</th>
+            <th>SOIL</th>
+            <th>ACTIONS</th>
           </tr>
         </thead>
         <tbody>
           {crops.map(crop => {
             const cost = calculateCost(crop);
+            const income = calculateIncome(crop);
             const canBuy = crop.unlocked && money >= cost;
+            const canUpgradeSoil = crop.unlocked && crop.soilLevel < 5 && money >= crop.soilUpgradeCost;
 
             return (
               <tr key={crop.id} className={!crop.unlocked ? 'locked' : ''}>
@@ -1018,16 +1058,35 @@ export function CropsTab({ crops, onBuy, money }: CropsTabProps) {
                   {crop.unlocked ? crop.owned : 'LOCKED'}
                 </td>
                 <td className="crop-gain">
-                  {crop.unlocked ? crop.baseIncome : '-'}
+                  {crop.unlocked ? income : '-'}
                 </td>
-                <td className="crop-buy">
-                  <button
-                    className="btn btn-primary buy-button"
-                    disabled={!canBuy}
-                    onClick={() => onBuy(crop.id)}
-                  >
-                    BUY
-                  </button>
+                <td className="crop-soil">
+                  {crop.unlocked ? (
+                    <span className={`soil-level ${crop.soilLevel >= 5 ? 'maxed' : ''}`}>
+                      {crop.soilLevel}/5
+                    </span>
+                  ) : '-'}
+                </td>
+                <td className="crop-actions">
+                  {crop.unlocked && (
+                    <>
+                      <button
+                        className="btn btn-secondary soil-button"
+                        disabled={!canUpgradeSoil}
+                        onClick={() => onUpgradeSoil(crop.id)}
+                        title={crop.soilLevel >= 5 ? 'Soil maxed' : `Upgrade soil ($${crop.soilUpgradeCost})`}
+                      >
+                        Soil+
+                      </button>
+                      <button
+                        className="btn btn-primary buy-button"
+                        disabled={!canBuy}
+                        onClick={() => onBuy(crop.id)}
+                      >
+                        BUY
+                      </button>
+                    </>
+                  )}
                 </td>
               </tr>
             );
@@ -1097,15 +1156,41 @@ export function CropsTab({ crops, onBuy, money }: CropsTabProps) {
   color: var(--accent-success);
 }
 
-.crop-buy {
-  text-align: center;
+.crop-soil {
+  font-family: var(--font-mono);
+}
+
+.soil-level {
+  padding: var(--space-2xs) var(--space-xs);
+  background: var(--bg-primary);
+  border-radius: var(--radius-sm);
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
+}
+
+.soil-level.maxed {
+  background: var(--accent-primary);
+  color: white;
+}
+
+.crop-actions {
+  display: flex;
+  gap: var(--space-xs);
+  justify-content: flex-end;
 }
 
 .buy-button {
-  min-width: 80px;
+  min-width: 60px;
 }
 
-.buy-button:disabled {
+.soil-button {
+  min-width: 50px;
+  font-size: var(--text-xs);
+  padding: var(--space-xs) var(--space-sm);
+}
+
+.buy-button:disabled,
+.soil-button:disabled {
   opacity: 0.4;
   cursor: not-allowed;
 }
