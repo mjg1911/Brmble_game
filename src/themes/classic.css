@@ -1,12 +1,39 @@
-/* Classic Theme - Warm farm colors */
-:root {
-  --bg-primary: #f5e6d3;
-  --bg-secondary: #e8d4bc;
-  --text-primary: #5c4033;
-  --text-secondary: #8b6914;
-  --accent-green: #6b8e23;
-  --accent-brown: #8b4513;
-  --button-bg: #deb887;
-  --button-hover: #d2a679;
-  --border-color: #c4a484;
+[data-theme="classic"] {
+  /* Backgrounds */
+  --bg-deep: #1a1920;
+  --bg-surface: #252330;
+  --bg-primary: #2d2b3a;
+  --bg-hover: #3a3850;
+  --bg-glass: rgba(45, 43, 58, 0.85);
+
+  /* Text */
+  --text-primary: #f5f0e8;
+  --text-secondary: #c4bfb4;
+  --text-muted: #6b6860;
+
+  /* Accents */
+  --accent-primary: #9d6cde;
+  --accent-primary-dark: #7b4fb9;
+  --accent-primary-glow: #c4a4ff;
+  --accent-secondary: #dfa86e;
+  --accent-success: #6bcf8e;
+  --accent-danger: #cf6b6b;
+
+  /* Effects */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --shadow-elevated: 0 8px 32px rgba(0,0,0,0.4);
+  --glass-blur: blur(12px);
+  --glow-sm: 0 0 8px;
+  --glow-md: 0 0 16px;
+
+  /* Borders */
+  --border-subtle: rgba(255, 255, 255, 0.08);
+  --glass-border: rgba(255, 255, 255, 0.12);
+
+  /* Heading colors */
+  --heading-title-color: var(--text-primary);
+  --heading-section-color: var(--text-secondary);
+  --heading-label-color: var(--text-muted);
 }
