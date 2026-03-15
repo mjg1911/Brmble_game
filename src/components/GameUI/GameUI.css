@@ -308,6 +308,12 @@
   content: "✓ ";
 }
 
+.unlock-btn {
+  width: 100%;
+  margin-top: var(--space-md);
+  font-size: var(--text-lg);
+}
+
 .all-unlocked {
   text-align: center;
   padding: var(--space-xl);

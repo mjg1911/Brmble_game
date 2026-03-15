@@ -234,12 +234,21 @@ function UpgradesTab({ crops, money, onUnlock }: { crops: Crop[]; money: number;
             </div>
           </div>
 
-          <div className="unlock-rewards">
-            <span className="rewards-label">Reward:</span>
-            <ul className="rewards-list">
-              <li>Unlock {nextUnlock.name}</li>
-            </ul>
-          </div>
+          {progress >= 100 ? (
+            <button
+              className="btn btn-primary unlock-btn"
+              onClick={() => onUnlock(nextUnlock.id)}
+            >
+              UNLOCK {nextUnlock.name.toUpperCase()}
+            </button>
+          ) : (
+            <div className="unlock-rewards">
+              <span className="rewards-label">Reward:</span>
+              <ul className="rewards-list">
+                <li>Unlock {nextUnlock.name}</li>
+              </ul>
+            </div>
+          )}
         </div>
       ) : (
         <div className="all-unlocked">
