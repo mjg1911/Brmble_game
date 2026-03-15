@@ -137,7 +137,8 @@ function CropsTab({ crops, onBuy, onUpgradeSoil, onUpgradeFertilizer, onUpgradeS
         <tbody>
           {crops.map(crop => {
             const cost = calculateCost(crop);
-            const income = calculateIncome(crop);
+            const incomePerCrop = calculateIncome(crop);
+            const totalIncome = incomePerCrop * crop.owned;
             const canBuy = crop.unlocked && money >= cost;
             const canUpgradeSoil = crop.unlocked && crop.soilLevel < 10 && money >= crop.soilUpgradeCost;
             const canUpgradeFertilizer = crop.unlocked && crop.fertilizerLevel < 10 && money >= crop.fertilizerUpgradeCost;
@@ -153,34 +154,37 @@ function CropsTab({ crops, onBuy, onUpgradeSoil, onUpgradeFertilizer, onUpgradeS
                   {crop.unlocked ? crop.owned : 'LOCKED'}
                 </td>
                 <td className="crop-gain">
-                  {crop.unlocked ? income.toLocaleString() : '-'}
+                  {crop.unlocked && crop.owned > 0 ? (
+                    <span className="gain-detail">
+                      {crop.owned} × ${incomePerCrop.toLocaleString()} = <span className="gain-total">${totalIncome.toLocaleString()}/s</span>
+                    </span>
+                  ) : crop.unlocked ? (
+                    <span className="gain-base">${incomePerCrop.toLocaleString()}/s</span>
+                  ) : '-'}
                 </td>
                 <td className="crop-upgrades">
                   {crop.unlocked ? (
                     <div className="upgrade-buttons">
                       <button
-                        className="btn btn-ghost upgrade-btn"
+                        className="btn btn-secondary upgrade-btn"
                         disabled={!canUpgradeSoil}
                         onClick={() => onUpgradeSoil(crop.id)}
-                        title={`Soil +50% ($${crop.soilUpgradeCost.toLocaleString()})`}
                       >
-                        S{crop.soilLevel}
+                        Soil+ ${crop.soilUpgradeCost.toLocaleString()}
                       </button>
                       <button
-                        className="btn btn-ghost upgrade-btn"
+                        className="btn btn-secondary upgrade-btn"
                         disabled={!canUpgradeFertilizer}
                         onClick={() => onUpgradeFertilizer(crop.id)}
-                        title={`Fertilizer +25% ($${crop.fertilizerUpgradeCost.toLocaleString()})`}
                       >
-                        F{crop.fertilizerLevel}
+                        Fert+ ${crop.fertilizerUpgradeCost.toLocaleString()}
                       </button>
                       <button
-                        className="btn btn-ghost upgrade-btn"
+                        className="btn btn-secondary upgrade-btn"
                         disabled={!canUpgradeSeeds}
                         onClick={() => onUpgradeSeeds(crop.id)}
-                        title={`Seeds +100% ($${crop.seedsUpgradeCost.toLocaleString()})`}
                       >
-                        B{crop.seedsLevel}
+                        Seeds+ ${crop.seedsUpgradeCost.toLocaleString()}
                       </button>
                     </div>
                   ) : '-'}

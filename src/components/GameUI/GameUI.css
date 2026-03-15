@@ -145,7 +145,20 @@
 
 .crop-gain {
   font-family: var(--font-mono);
+  font-size: var(--text-sm);
+}
+
+.gain-base {
   color: var(--accent-success);
+}
+
+.gain-detail {
+  color: var(--text-secondary);
+}
+
+.gain-total {
+  color: var(--accent-success);
+  font-weight: bold;
 }
 
 .crop-upgrades {
@@ -155,14 +168,14 @@
 
 .upgrade-buttons {
   display: flex;
-  gap: var(--space-2xs);
+  gap: var(--space-xs);
+  flex-wrap: wrap;
 }
 
 .upgrade-btn {
-  min-width: 32px;
-  padding: var(--space-2xs) var(--space-xs);
-  font-size: var(--text-2xs);
-  font-family: var(--font-mono);
+  padding: var(--space-2xs) var(--space-sm);
+  font-size: var(--text-xs);
+  white-space: nowrap;
 }
 
 .upgrade-btn:disabled {
