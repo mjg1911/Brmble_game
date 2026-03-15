@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import GameUI from './components/GameUI/GameUI'
 import useGameState from './hooks/useGameState'
 
