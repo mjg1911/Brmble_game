@@ -207,12 +207,27 @@ function CropsTab({ crops, onBuy, onUpgradeSoil, onUpgradeFertilizer, onUpgradeS
 
 function UpgradesTab({ crops, money, onUnlock }: { crops: Crop[]; money: number; onUnlock: (cropId: string) => void }) {
   const nextUnlock = crops.find(c => !c.unlocked && c.unlockCost);
+  const unlockedCrops = crops.filter(c => c.unlocked);
 
   const progress = nextUnlock ? Math.min((money / nextUnlock.unlockCost!) * 100, 100) : 100;
 
   return (
     <div className="upgrades-tab">
       <h2 className="heading-section">Unlocks</h2>
+      
+      {unlockedCrops.length > 0 && (
+        <div className="unlocked-section">
+          <h3 className="unlocked-title">Unlocked Crops</h3>
+          <div className="unlocked-list">
+            {unlockedCrops.map(crop => (
+              <div key={crop.id} className="unlocked-item">
+                <span className="unlocked-check">✓</span>
+                <span className="unlocked-name">{crop.name}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
       
       {nextUnlock ? (
         <div className="unlock-card">
