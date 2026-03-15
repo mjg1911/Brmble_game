@@ -37,7 +37,8 @@ export function GameUI({ state, actions }: GameUIProps) {
           {activeTab === 'upgrades' && (
             <UpgradesTab 
               crops={state.crops} 
-              money={state.money} 
+              money={state.money}
+              onUnlock={actions.unlockCrop}
             />
           )}
           {activeTab === 'options' && (
@@ -204,7 +205,7 @@ function CropsTab({ crops, onBuy, onUpgradeSoil, onUpgradeFertilizer, onUpgradeS
   );
 }
 
-function UpgradesTab({ crops, money }: { crops: Crop[]; money: number }) {
+function UpgradesTab({ crops, money, onUnlock }: { crops: Crop[]; money: number; onUnlock: (cropId: string) => void }) {
   const nextUnlock = crops.find(c => !c.unlocked && c.unlockCost);
 
   const progress = nextUnlock ? Math.min((money / nextUnlock.unlockCost!) * 100, 100) : 100;
