@@ -1,0 +1,12 @@
+/* Classic Theme - Warm farm colors */
+:root {
+  --bg-primary: #f5e6d3;
+  --bg-secondary: #e8d4bc;
+  --text-primary: #5c4033;
+  --text-secondary: #8b6914;
+  --accent-green: #6b8e23;
+  --accent-brown: #8b4513;
+  --button-bg: #deb887;
+  --button-hover: #d2a679;
+  --border-color: #c4a484;
+}
