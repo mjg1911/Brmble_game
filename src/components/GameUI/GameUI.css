@@ -195,6 +195,32 @@
   display: flex;
   gap: var(--space-xs);
   justify-content: flex-end;
+  align-items: center;
+}
+
+.buy-progress {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+}
+
+.progress-container-sm {
+  width: 60px;
+}
+
+.progress-bar-sm {
+  height: 10px;
+  background: var(--bg-surface);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  border: 1px solid var(--border-subtle);
+}
+
+.progress-fill-sm {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent-primary), var(--accent-primary-glow));
+  border-radius: var(--radius-sm);
+  transition: width var(--transition-fast);
 }
 
 .buy-button {

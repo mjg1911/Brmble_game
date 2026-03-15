@@ -195,13 +195,23 @@ function CropsTab({ crops, onBuy, onUpgradeSoil, onUpgradeFertilizer, onUpgradeS
                 </td>
                 <td className="crop-actions">
                   {crop.unlocked && (
-                    <button
-                      className="btn btn-primary buy-button"
-                      disabled={!canBuy}
-                      onClick={() => onBuy(crop.id)}
-                    >
-                      BUY
-                    </button>
+                    <div className="buy-progress">
+                      <div className="progress-container-sm">
+                        <div className="progress-bar-sm">
+                          <div 
+                            className="progress-fill-sm" 
+                            style={{ width: `${Math.min((money / cost) * 100, 100)}%` }}
+                          />
+                        </div>
+                      </div>
+                      <button
+                        className="btn btn-primary buy-button"
+                        disabled={!canBuy}
+                        onClick={() => onBuy(crop.id)}
+                      >
+                        BUY
+                      </button>
+                    </div>
                   )}
                 </td>
               </tr>
