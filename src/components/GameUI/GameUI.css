@@ -161,25 +161,16 @@
   font-weight: bold;
 }
 
-.crop-upgrades {
-  display: flex;
-  align-items: center;
-}
-
-.upgrade-buttons {
-  display: flex;
-  gap: var(--space-xs);
-  flex-wrap: wrap;
+.crop-upgrade {
+  text-align: center;
 }
 
 .upgrade-btn {
-  padding: var(--space-2xs) var(--space-sm);
-  font-size: var(--text-xs);
-  white-space: nowrap;
+  min-width: 100px;
 }
 
 .upgrade-btn:disabled {
-  opacity: 0.3;
+  opacity: 0.5;
   cursor: not-allowed;
 }
 
