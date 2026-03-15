@@ -48,9 +48,9 @@ export function useGameState() {
     const interval = setInterval(() => {
       setState(prev => ({
         ...prev,
-        money: prev.money + prev.incomePerSecond,
+        money: prev.money + (prev.incomePerSecond / 10),
       }));
-    }, 1000);
+    }, 100);
     return () => clearInterval(interval);
   }, [state.incomePerSecond]);
 

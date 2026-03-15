@@ -57,16 +57,24 @@ export function GameUI({ state, actions }: GameUIProps) {
   );
 }
 
+function formatNumber(value: number): string {
+  if (value >= 1e12) return (value / 1e12).toFixed(2) + 'T';
+  if (value >= 1e9) return (value / 1e9).toFixed(2) + 'B';
+  if (value >= 1e6) return (value / 1e6).toFixed(2) + 'M';
+  if (value >= 1e3) return (value / 1e3).toFixed(2) + 'K';
+  return Math.floor(value).toLocaleString();
+}
+
 function Header({ money, income }: { money: number; income: number }) {
   return (
     <header className="game-header">
       <div className="header-stat">
         <span className="header-label">MONEY:</span>
-        <span className="header-value currency">${money.toLocaleString()}</span>
+        <span className="header-value currency">${formatNumber(money)}</span>
       </div>
       <div className="header-stat">
         <span className="header-label">INCOME:</span>
-        <span className="header-value income">+{income.toLocaleString()}</span>
+        <span className="header-value income">+${formatNumber(income)}/s</span>
       </div>
     </header>
   );
