@@ -7,7 +7,10 @@ function calculateIncome(crops: Crop[]): number {
   return crops.reduce((total, crop) => {
     if (!crop.unlocked) return total;
     const soilMultiplier = 1 + (crop.soilLevel * 0.5);
-    return total + (crop.baseIncome * crop.owned * soilMultiplier);
+    const fertilizerMultiplier = 1 + (crop.fertilizerLevel * 0.25);
+    const seedsMultiplier = 1 + (crop.seedsLevel * 1.0);
+    const totalMultiplier = soilMultiplier * fertilizerMultiplier * seedsMultiplier;
+    return total + (crop.baseIncome * crop.owned * totalMultiplier);
   }, 0);
 }
 
@@ -64,16 +67,9 @@ export function useGameState() {
         return { ...c, owned: c.owned + 1 };
       });
 
-      const newCropsWithUnlocks = newCrops.map(c => {
-        if (c.unlockCost && prev.money >= c.unlockCost && !c.unlocked) {
-          return { ...c, unlocked: true };
-        }
-        return c;
-      });
-
       return {
         ...prev,
-        crops: newCropsWithUnlocks,
+        crops: newCrops,
         money: prev.money - cost,
       };
     });
@@ -82,7 +78,7 @@ export function useGameState() {
   const upgradeSoil = useCallback((cropId: string) => {
     setState(prev => {
       const crop = prev.crops.find(c => c.id === cropId);
-      if (!crop || !crop.unlocked || crop.soilLevel >= 5) return prev;
+      if (!crop || !crop.unlocked || crop.soilLevel >= 10) return prev;
       if (prev.money < crop.soilUpgradeCost) return prev;
 
       return {
@@ -96,6 +92,48 @@ export function useGameState() {
           };
         }),
         money: prev.money - crop.soilUpgradeCost,
+      };
+    });
+  }, []);
+
+  const upgradeFertilizer = useCallback((cropId: string) => {
+    setState(prev => {
+      const crop = prev.crops.find(c => c.id === cropId);
+      if (!crop || !crop.unlocked || crop.fertilizerLevel >= 10) return prev;
+      if (prev.money < crop.fertilizerUpgradeCost) return prev;
+
+      return {
+        ...prev,
+        crops: prev.crops.map(c => {
+          if (c.id !== cropId) return c;
+          return {
+            ...c,
+            fertilizerLevel: c.fertilizerLevel + 1,
+            fertilizerUpgradeCost: Math.floor(c.fertilizerUpgradeCost * 1.5),
+          };
+        }),
+        money: prev.money - crop.fertilizerUpgradeCost,
+      };
+    });
+  }, []);
+
+  const upgradeSeeds = useCallback((cropId: string) => {
+    setState(prev => {
+      const crop = prev.crops.find(c => c.id === cropId);
+      if (!crop || !crop.unlocked || crop.seedsLevel >= 5) return prev;
+      if (prev.money < crop.seedsUpgradeCost) return prev;
+
+      return {
+        ...prev,
+        crops: prev.crops.map(c => {
+          if (c.id !== cropId) return c;
+          return {
+            ...c,
+            seedsLevel: c.seedsLevel + 1,
+            seedsUpgradeCost: Math.floor(c.seedsUpgradeCost * 1.5),
+          };
+        }),
+        money: prev.money - crop.seedsUpgradeCost,
       };
     });
   }, []);
@@ -142,6 +180,8 @@ export function useGameState() {
   const actions: GameActions = {
     buyCrop,
     upgradeSoil,
+    upgradeFertilizer,
+    upgradeSeeds,
     setTheme,
     saveGame,
     loadGame,

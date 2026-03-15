@@ -148,6 +148,28 @@
   color: var(--accent-success);
 }
 
+.crop-upgrades {
+  display: flex;
+  align-items: center;
+}
+
+.upgrade-buttons {
+  display: flex;
+  gap: var(--space-2xs);
+}
+
+.upgrade-btn {
+  min-width: 32px;
+  padding: var(--space-2xs) var(--space-xs);
+  font-size: var(--text-2xs);
+  font-family: var(--font-mono);
+}
+
+.upgrade-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
 .crop-soil {
   font-family: var(--font-mono);
 }
@@ -220,6 +242,66 @@
 .unlock-value.cost {
   color: var(--accent-secondary);
   font-family: var(--font-mono);
+}
+
+.unlock-progress {
+  margin-top: var(--space-lg);
+}
+
+.progress-container {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.progress-bar {
+  flex: 1;
+  height: 16px;
+  background: var(--bg-surface);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  border: 1px solid var(--border-subtle);
+}
+
+.progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent-primary), var(--accent-primary-glow));
+  border-radius: var(--radius-sm);
+  transition: width var(--transition-normal);
+}
+
+.progress-percent {
+  font-family: var(--font-mono);
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  min-width: 40px;
+  text-align: right;
+}
+
+.unlock-rewards {
+  margin-top: var(--space-lg);
+  padding-top: var(--space-md);
+  border-top: 1px solid var(--border-subtle);
+}
+
+.rewards-label {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+
+.rewards-list {
+  list-style: none;
+  margin-top: var(--space-xs);
+}
+
+.rewards-list li {
+  font-size: var(--text-sm);
+  color: var(--accent-success);
+  padding: var(--space-2xs) 0;
+}
+
+.rewards-list li::before {
+  content: "✓ ";
 }
 
 .all-unlocked {

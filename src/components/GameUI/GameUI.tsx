@@ -11,6 +11,12 @@ type TabId = 'crops' | 'upgrades' | 'options';
 
 export function GameUI({ state, actions }: GameUIProps) {
   const [activeTab, setActiveTab] = useState<TabId>('crops');
+  
+  const visibleCrops = state.crops.filter((crop, index) => {
+    if (crop.unlocked) return true;
+    const prevCrop = state.crops[index - 1];
+    return prevCrop && prevCrop.unlocked;
+  });
 
   return (
     <div className="game-ui">
@@ -20,16 +26,17 @@ export function GameUI({ state, actions }: GameUIProps) {
         <div className="game-content">
           {activeTab === 'crops' && (
             <CropsTab 
-              crops={state.crops} 
+              crops={visibleCrops} 
               onBuy={actions.buyCrop} 
               onUpgradeSoil={actions.upgradeSoil}
+              onUpgradeFertilizer={actions.upgradeFertilizer}
+              onUpgradeSeeds={actions.upgradeSeeds}
               money={state.money} 
             />
           )}
           {activeTab === 'upgrades' && (
             <UpgradesTab 
               crops={state.crops} 
-              upgrades={state.upgrades} 
               money={state.money} 
             />
           )}
@@ -95,6 +102,8 @@ interface CropsTabProps {
   crops: Crop[];
   onBuy: (cropId: string) => void;
   onUpgradeSoil: (cropId: string) => void;
+  onUpgradeFertilizer: (cropId: string) => void;
+  onUpgradeSeeds: (cropId: string) => void;
   money: number;
 }
 
@@ -104,10 +113,13 @@ function calculateCost(crop: Crop): number {
 
 function calculateIncome(crop: Crop): number {
   const soilMultiplier = 1 + (crop.soilLevel * 0.5);
-  return Math.floor(crop.baseIncome * soilMultiplier);
+  const fertilizerMultiplier = 1 + (crop.fertilizerLevel * 0.25);
+  const seedsMultiplier = 1 + (crop.seedsLevel * 1.0);
+  const totalMultiplier = soilMultiplier * fertilizerMultiplier * seedsMultiplier;
+  return Math.floor(crop.baseIncome * totalMultiplier);
 }
 
-function CropsTab({ crops, onBuy, onUpgradeSoil, money }: CropsTabProps) {
+function CropsTab({ crops, onBuy, onUpgradeSoil, onUpgradeFertilizer, onUpgradeSeeds, money }: CropsTabProps) {
   return (
     <div className="crops-tab">
       <h2 className="heading-section">Crops</h2>
@@ -118,7 +130,7 @@ function CropsTab({ crops, onBuy, onUpgradeSoil, money }: CropsTabProps) {
             <th>COST</th>
             <th>OWNED</th>
             <th>GAIN/s</th>
-            <th>SOIL</th>
+            <th>UPGRADES</th>
             <th>ACTIONS</th>
           </tr>
         </thead>
@@ -127,7 +139,9 @@ function CropsTab({ crops, onBuy, onUpgradeSoil, money }: CropsTabProps) {
             const cost = calculateCost(crop);
             const income = calculateIncome(crop);
             const canBuy = crop.unlocked && money >= cost;
-            const canUpgradeSoil = crop.unlocked && crop.soilLevel < 5 && money >= crop.soilUpgradeCost;
+            const canUpgradeSoil = crop.unlocked && crop.soilLevel < 10 && money >= crop.soilUpgradeCost;
+            const canUpgradeFertilizer = crop.unlocked && crop.fertilizerLevel < 10 && money >= crop.fertilizerUpgradeCost;
+            const canUpgradeSeeds = crop.unlocked && crop.seedsLevel < 5 && money >= crop.seedsUpgradeCost;
 
             return (
               <tr key={crop.id} className={!crop.unlocked ? 'locked' : ''}>
@@ -139,34 +153,47 @@ function CropsTab({ crops, onBuy, onUpgradeSoil, money }: CropsTabProps) {
                   {crop.unlocked ? crop.owned : 'LOCKED'}
                 </td>
                 <td className="crop-gain">
-                  {crop.unlocked ? income : '-'}
+                  {crop.unlocked ? income.toLocaleString() : '-'}
                 </td>
-                <td className="crop-soil">
+                <td className="crop-upgrades">
                   {crop.unlocked ? (
-                    <span className={`soil-level ${crop.soilLevel >= 5 ? 'maxed' : ''}`}>
-                      {crop.soilLevel}/5
-                    </span>
+                    <div className="upgrade-buttons">
+                      <button
+                        className="btn btn-ghost upgrade-btn"
+                        disabled={!canUpgradeSoil}
+                        onClick={() => onUpgradeSoil(crop.id)}
+                        title={`Soil +50% ($${crop.soilUpgradeCost.toLocaleString()})`}
+                      >
+                        S{crop.soilLevel}
+                      </button>
+                      <button
+                        className="btn btn-ghost upgrade-btn"
+                        disabled={!canUpgradeFertilizer}
+                        onClick={() => onUpgradeFertilizer(crop.id)}
+                        title={`Fertilizer +25% ($${crop.fertilizerUpgradeCost.toLocaleString()})`}
+                      >
+                        F{crop.fertilizerLevel}
+                      </button>
+                      <button
+                        className="btn btn-ghost upgrade-btn"
+                        disabled={!canUpgradeSeeds}
+                        onClick={() => onUpgradeSeeds(crop.id)}
+                        title={`Seeds +100% ($${crop.seedsUpgradeCost.toLocaleString()})`}
+                      >
+                        B{crop.seedsLevel}
+                      </button>
+                    </div>
                   ) : '-'}
                 </td>
                 <td className="crop-actions">
                   {crop.unlocked && (
-                    <>
-                      <button
-                        className="btn btn-secondary soil-button"
-                        disabled={!canUpgradeSoil}
-                        onClick={() => onUpgradeSoil(crop.id)}
-                        title={crop.soilLevel >= 5 ? 'Soil maxed' : `Upgrade soil ($${crop.soilUpgradeCost})`}
-                      >
-                        Soil+
-                      </button>
-                      <button
-                        className="btn btn-primary buy-button"
-                        disabled={!canBuy}
-                        onClick={() => onBuy(crop.id)}
-                      >
-                        BUY
-                      </button>
-                    </>
+                    <button
+                      className="btn btn-primary buy-button"
+                      disabled={!canBuy}
+                      onClick={() => onBuy(crop.id)}
+                    >
+                      BUY
+                    </button>
                   )}
                 </td>
               </tr>
@@ -178,8 +205,10 @@ function CropsTab({ crops, onBuy, onUpgradeSoil, money }: CropsTabProps) {
   );
 }
 
-function UpgradesTab({ crops }: { crops: Crop[]; upgrades: any[]; money: number }) {
+function UpgradesTab({ crops, money }: { crops: Crop[]; money: number }) {
   const nextUnlock = crops.find(c => !c.unlocked && c.unlockCost);
+
+  const progress = nextUnlock ? Math.min((money / nextUnlock.unlockCost!) * 100, 100) : 100;
 
   return (
     <div className="upgrades-tab">
@@ -194,6 +223,22 @@ function UpgradesTab({ crops }: { crops: Crop[]; upgrades: any[]; money: number 
           <div className="unlock-info">
             <span className="unlock-label">Unlock Requirement:</span>
             <span className="unlock-value cost">${nextUnlock.unlockCost?.toLocaleString()}</span>
+          </div>
+          
+          <div className="unlock-progress">
+            <div className="progress-container">
+              <div className="progress-bar">
+                <div className="progress-fill" style={{ width: `${progress}%` }} />
+              </div>
+              <span className="progress-percent">{Math.round(progress)}%</span>
+            </div>
+          </div>
+
+          <div className="unlock-rewards">
+            <span className="rewards-label">Reward:</span>
+            <ul className="rewards-list">
+              <li>Unlock {nextUnlock.name}</li>
+            </ul>
           </div>
         </div>
       ) : (
